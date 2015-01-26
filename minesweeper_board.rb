@@ -14,6 +14,9 @@ class Tile
   end
 
   def number
+    neighbors.select do |neighbor|
+      neighbor.bomb
+    end.count
   end
 
   def reveal(first=true)
@@ -22,6 +25,7 @@ class Tile
     return :safe if revealed
     @revealed = true
     return :exploded if @bomb
+    return :safe if number > 0
 
     not_safe = neighbors.any? do |neighbor|
       neighbor.reveal(false) == :exploded
@@ -40,3 +44,5 @@ class Tile
 end
 
 def Board
+
+end
