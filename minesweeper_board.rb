@@ -60,6 +60,22 @@ class Tile
       number.to_s
     end
   end
+
+  def display(over)
+    unless over
+      if revealed
+        num_as_string
+      else
+        Board::UNEXPLORED
+      end
+    else
+      if bomb
+        Board::BOMB
+      else
+        num_as_string
+      end
+    end
+  end
 end
 
 class Board
@@ -148,31 +164,7 @@ class Board
 
     @row_count.times do |row|
       @column_count.times do |column|
-        if @tiles[row][column].revealed
-          revealed_display << @tiles[row][column].num_as_string
-        elsif @tiles[row][column].flagged
-          revealed_display << FLAG
-
-        else
-          revealed_display << UNEXPLORED
-        end
-      end
-      revealed_display << "\n"
-    end
-
-    revealed_display
-  end
-
-  def display_solution
-    revealed_display = ""
-
-    @row_count.times do |row|
-      @column_count.times do |column|
-        if @tiles[row][column].bomb
-          revealed_display << BOMB
-        else
-          revealed_display << @tiles[row][column].num_as_string
-        end
+        revealed_display << @tiles[row][column].display(won? || loss?)
       end
       revealed_display << "\n"
     end

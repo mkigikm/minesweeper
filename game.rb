@@ -119,11 +119,7 @@ class Display
   end
 
   def display_game(screen, game)
-    if game.board.won? || game.board.loss?
-      game_board = game.board.display_solution
-    else
-      game_board = game.board.display
-    end
+    game_board = game.board.display
 
     if game.board.won?
       game_board << "\nWin!"
