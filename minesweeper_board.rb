@@ -65,6 +65,8 @@ class Tile
     unless over
       if revealed
         num_as_string
+      elsif flagged
+        Board::FLAG
       else
         Board::UNEXPLORED
       end

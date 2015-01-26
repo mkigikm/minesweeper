@@ -134,12 +134,50 @@ class Display
 
     game_board << "\n #{game.get_time}" unless game.get_time.nil?
 
+    #map = make_map(game_board)
+    #
+    # bmap = Dispel::StyleMap.new(3) # number of lines
+    #map.add(["#0000FF", "#000000"], 0, 1..1)    # :normal / :reverse / color, line, characters
+
     screen.draw(game_board, [], game.position)
+
+  end
+
+  def make_map(string)
+    rows = string.split("\n")
+    map = Dispel::StyleMap.new(rows.count)
+
+    rows.each_with_index do |row|
+      row.each_char.with_index do |char, index|
+        # case char
+        # when "1"
+        #   map.add(["#0000FF", "#000000"], row, index..index)
+        # when "2"
+        #   map.add(["#0000FF", "#000000"], row, index..index)
+        # when "3"
+        #   map.add(["#0000FF", "#000000"], row, index..index)
+        # when "4"
+        #   map.add(["#0000FF", "#000000"], row, index..index)
+        # when "5"
+        #   map.add(["#0000FF", "#000000"], row, index..index)
+        # when "6"
+        #   map.add(["#0000FF", "#000000"], row, index..index)
+        # when "7"
+        #   map.add(["#0000FF", "#000000"], row, index..index)
+        # when "8"
+        #   map.add(["#0000FF", "#000000"], row, index..index)
+        # when "*"
+        #   map.add(["#0000FF", "#000000"], row, index..index)
+        # end
+      end
+      map
+    end
+
   end
 
   def run_game(game, game_type)
 
-    Dispel::Screen.open do |screen|
+    Dispel::Screen.open(:colors => true) do |screen|
       display_game(screen, game)
 
       Dispel::Keyboard.output do |key|
@@ -171,11 +209,57 @@ class Display
     end
   end
 
-  def display_main_menu
-    current_menu = MAIN_MENU.dup
+  def display_main_menu(screen)
 
+
+    current_menu = MAIN_MENU.dup
     current_menu[4] += " #{@custom_rows} x #{@custom_columns} Bombs: #{@custom_bombs}"
-    current_menu.join("\n")
+    current_menu = current_menu.join("\n")
+
+    map = Dispel::StyleMap.new(current_menu.count("\n"))
+    map.add(:reverseb, 0, 1..5)    # :normal / :reverse / color, line, characters
+    map.add(["#aa0000", "#00aa00"], 0, 5..8) # foreground red, background green
+
+
+    screen.draw(current_menu, [])
+
+    current_menu
+  end
+
+  def run_main_menu
+    Dispel::Screen.open(:colors => true) do |screen|
+      display_main_menu(screen)
+
+      Dispel::Keyboard.output do |key|
+        case key
+        when 'b'
+          clear_main_menu(screen)
+          run_game(Game.new(9, 9, 10), :beginner)
+        when 'i'
+          clear_main_menu(screen)
+          run_game(Game.new(16, 16, 40), :intermediate)
+        when 'e'
+          clear_main_menu(screen)
+          run_game(Game.new(16, 30, 99), :expert)
+        when 'c'
+          clear_main_menu(screen)
+          run_game(Game.new(@custom_rows, @custom_columns, @custom_bombs), :custom)
+        when 'l'
+          clear_main_menu(screen)
+          game = Game.load
+          run_game(game, :custom) unless game.nil?
+        when 's'
+          clear_main_menu(screen)
+          run_custom_menu
+        when 'a'
+          clear_main_menu(screen)
+          run_leaderboard
+        when 'x' then exit
+        end
+
+        display_main_menu(screen)
+      end
+    end
   end
 
   def increase_rows
@@ -208,14 +292,6 @@ class Display
     @custom_rows * @custom_columns - 1
   end
 
-# "Custom Board Settings",
-# "Rows",
-# " (q) ⬆  (a) ⬇",
-# "Columns",
-# " (w) ⬆  (s) ⬇",
-# "Bombs",
-# " (e) ⬆  (d) ⬇",
-# "(M)ain menu"
   def display_custom_menu
     current_menu = CUSTOM_MENU.dup
 
@@ -275,49 +351,11 @@ class Display
   end
 
   def clear_main_menu(screen)
-    clear_string = display_main_menu
+    clear_string = display_main_menu(screen)
     clear_string.gsub!(/[^\n]/, ' ')
     screen.draw(clear_string)
   end
 
-  def run_main_menu
-    Dispel::Screen.open do |screen|
-      screen.draw(display_main_menu)
-
-      Dispel::Keyboard.output do |key|
-        case key
-        when 'b'
-          clear_main_menu(screen)
-          run_game(Game.new(9, 9, 10), :beginner)
-        when 'i'
-          clear_main_menu(screen)
-          run_game(Game.new(16, 16, 40), :intermediate)
-        when 'e'
-          clear_main_menu(screen)
-          run_game(Game.new(16, 30, 99), :expert)
-        when 'c'
-          clear_main_menu(screen)
-          run_game(Game.new(@custom_rows, @custom_columns, @custom_bombs), :custom)
-        when 'l'
-          clear_main_menu(screen)
-          game = Game.load
-          run_game(game) unless game.nil?
-        when 's'
-          clear_main_menu(screen)
-          run_custom_menu
-        when 'a'
-          clear_main_menu(screen)
-          run_leaderboard
-        when 'x' then exit
-        end
-
-        screen.draw(display_main_menu)
-      end
-    end
-  end
-
-  def leaderboard
-  end
 
 end
 

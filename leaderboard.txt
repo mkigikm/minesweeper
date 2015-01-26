@@ -1,5 +1,7 @@
 --- !ruby/object:Leaderboard
 beginner:
+- - 
+  - 47.578401
 - - matt
   - 51.940419
 - - 
