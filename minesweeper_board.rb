@@ -36,10 +36,9 @@ class Tile
   end
 
   def reveal
-    return if revealed
+    return if revealed || flagged
     @revealed = true
-    return :safe if number > 0
-
+    return if number > 0
     neighbors.each do |neighbor|
       neighbor.reveal
     end
