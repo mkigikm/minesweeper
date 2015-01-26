@@ -73,7 +73,7 @@ class Board
     [1,-1],
     [-1,1]
   ]
-  UNEXPLORED = "_"
+  UNEXPLORED = "-"
   BOMB = "*"
   FLAG = "^"
 

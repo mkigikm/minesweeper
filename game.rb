@@ -2,6 +2,7 @@
 require 'dispel'
 require './minesweeper_board.rb'
 require 'yaml'
+require './leaderboard.rb'
 
 class Game
   attr_reader :position, :board
@@ -39,7 +40,7 @@ class Game
   end
 
   def save(file_name)
-    File.open(file_name, 'a') do |f|
+    File.open(file_name, 'w') do |f|
       f.puts self.to_yaml
     end
   end
@@ -64,7 +65,7 @@ class Game
   end
 
   def flag
-    @board.flag(postion)
+    @board.flag(position)
   end
 
 end
@@ -91,6 +92,14 @@ class Display
     " (e) ⬆  (d) ⬇",
     "(M)ain menu"
   ]
+  LEADERBOARD_HEADER = "Leaderboard"
+  LEADERBOARD_NAME = {
+    beginner: "Beginner",
+    intermediate: "Intermediate",
+    expert: "Expert"
+  }
+
+  LEADERBOARD_INSTRUCTIONS = "(B)eginner (I)ntermediate (E)xpert (M)ain menu"
 
   MIN_ROWS = 3
   MIN_COLUMNS = 8
@@ -102,6 +111,7 @@ class Display
     @custom_rows = 10
     @custom_columns = 10
     @custom_bombs = 10
+    @leaderboard = Leaderboard.load
   end
 
   def display_game(screen, game)
@@ -224,6 +234,35 @@ class Display
     end
   end
 
+  def display_leaderboard(current_leaderboard)
+    top_times = @leaderboard.send(current_leaderboard)
+    top_strings = top_times.map.with_index do |leaderboard, index|
+      "#{index + 1}. #{leaderboard.first} #{leaderboard.last}"
+    end
+    leaderboard_array = [LEADERBOARD_HEADER, LEADERBOARD_NAME[current_leaderboard]]
+    leaderboard_array.concat(top_strings)
+    leaderboard_array += [LEADERBOARD_INSTRUCTIONS]
+    leaderboard_array.join("\n")
+  end
+
+  def run_leaderboard
+    Dispel::Screen.open do |screen|
+      current_leaderboard = :beginner
+      screen.draw(display_leaderboard(current_leaderboard))
+
+      Dispel::Keyboard.output do |key|
+        case key
+        when 'b' then current_leaderboard = :beginner
+        when 'i' then current_leaderboard = :intermediate
+        when 'e' then current_leaderboard = :expert
+        when 'm' then break
+        end
+
+        screen.draw(display_leaderboard(current_leaderboard))
+      end
+    end
+  end
+
   def clear_main_menu(screen)
     clear_string = display_main_menu
     clear_string.gsub(/[^\n]/, ' ')
@@ -246,7 +285,7 @@ class Display
         when 's'
           clear_main_menu(screen)
           run_custom_menu
-        when 'a' then break
+        when 'a' then run_leaderboard
         when 'x' then exit
         end
 
@@ -258,11 +297,7 @@ class Display
   def leaderboard
   end
 
-  def custom_settings
-  end
-
 end
-
 
 if __FILE__ == $PROGRAM_NAME
 
