@@ -1,8 +1,14 @@
 require 'dispel'
 require './minesweeper_board.rb'
+require 'yaml'
 
 class Game
   attr_reader :position, :board
+
+  def self.load(file_name = 'minesweeper.txt')
+    serialized_game = File.read(file_name)
+    YAML::load(serialized_game)
+  end
 
   def initialize(rows, columns, bombs)
     @board = Board.new(rows, columns, bombs)
@@ -26,6 +32,13 @@ class Game
   def right
     @position[1] += 1 unless @position[1] ==  @column_count - 1
   end
+
+  def save(file_name)
+    File.open(file_name, 'a') do |f|
+      f.puts self.to_yaml
+    end
+  end
+
 end
 
 class Display
@@ -64,6 +77,7 @@ class Display
         when "q" then break
         when " " then game.board.reveal(game.position)
         when "f" then game.board.flag(game.position)
+        when "s" then game.save('minesweeper.txt')
         end
 
         display_game(screen, game)
