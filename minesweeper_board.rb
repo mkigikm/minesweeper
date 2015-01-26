@@ -54,15 +54,20 @@ def Board
     [1,-1],
     [-1,1]
   ]
+  UNEXPLORED = "#"
 
   def self.randomize_bombs(rows, columns, bomb_count)
     locations = [true] * bomb_count + [false] * (rows * columns - bomb_count)
     locations.shuffle!
   end
 
+  def self.empty_dimensions(row_count, column_count)
+    Array.new(row_count) { Array.new(column_count)}
+  end
+
   def initialize(rows, columns, bomb_count)
     bomb_locations = self.class.randomize_bombs(rows, columns, bomb_count)
-    @tiles = Array.new(rows) { Array.new(columns)}
+    @tiles = self.class.empty_dimensions(rows, columns)
     @row_count = rows
     @column_count = columns
     @bomb_count = bomb_count
@@ -108,5 +113,25 @@ def Board
   def won?
     revelead_tile_count = @tiles.flatten.select { |tile| tile.revealed}.count
     revelead_tile_count == @row_count * @tile_count - @bomb_count
+  end
+
+  def display
+    revealed_display = ""
+
+    @row_count.times do |row|
+      @column_count.times do |column|
+        if @tiles[row][column].revealed
+          revealed_display << @tiles[row][column].number.to_s
+        else
+          revealed_display << UNEXPLORED
+        end
+      end
+      revealed_display << "\n"
+    end
+
+    revealed_display
+  end
+
+  def display_solution
   end
 end
