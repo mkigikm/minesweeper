@@ -1,0 +1,14 @@
+--- !ruby/object:Leaderboard
+beginner:
+- - matt
+  - 51.940419
+- - 
+  - 56.119967
+- - minesweeper
+  - 999
+intermediate:
+- - minesweeper
+  - 999
+expert:
+- - minesweeper
+  - 999

@@ -55,8 +55,11 @@ class Game
 
   def reveal
     start_timer if @start_time.nil?
+    old_win = board.won?
     @board.reveal(position)
     end_timer if board.won? || board.loss?
+    return true if board.won? && !old_win
+    false
   end
 
   def get_time
@@ -107,7 +110,8 @@ class Display
   MAX_COLUMNS = 99
   MIN_BOMBS = 1
 
-  def initialize
+  def initialize(user_name)
+    @user_name = user_name
     @custom_rows = 10
     @custom_columns = 10
     @custom_bombs = 10
@@ -123,6 +127,7 @@ class Display
 
     if game.board.won?
       game_board << "\nWin!"
+
     elsif game.board.alive
       game_board << "\nAlive"
     else
@@ -136,7 +141,7 @@ class Display
     screen.draw(game_board, [], game.position)
   end
 
-  def run_game(game)
+  def run_game(game, game_type)
 
     Dispel::Screen.open do |screen|
       display_game(screen, game)
@@ -148,7 +153,17 @@ class Display
         when :right then game.right
         when :down then game.down
         when "q" then break
-        when " " then game.reveal
+        when " "
+          if game.reveal && game_type != :custom
+            case game_type
+            when :beginner
+              @leaderboard.add_beginner_time(@user_name, game.get_time )
+            when :intermediate
+              @leaderboard.add_intermediate_time(@user_name, game.get_time )
+            when :expert
+              @leaderboard.add_expert_time(@user_name, game.get_time )
+            end
+          end
         when "f" then game.flag
         when "s"
           game.save('minesweeper.txt')
@@ -265,7 +280,7 @@ class Display
 
   def clear_main_menu(screen)
     clear_string = display_main_menu
-    clear_string.gsub(/[^\n]/, ' ')
+    clear_string.gsub!(/[^\n]/, ' ')
     screen.draw(clear_string)
   end
 
@@ -275,17 +290,28 @@ class Display
 
       Dispel::Keyboard.output do |key|
         case key
-        when 'b' then run_game(Game.new(9, 9, 10))
-        when 'i' then run_game(Game.new(16, 16, 40))
-        when 'e' then run_game(Game.new(16, 30, 99))
-        when 'c' then run_game(Game.new(@custom_rows, @custom_columns, @custom_bombs))
+        when 'b'
+          clear_main_menu(screen)
+          run_game(Game.new(9, 9, 10), :beginner)
+        when 'i'
+          clear_main_menu(screen)
+          run_game(Game.new(16, 16, 40), :intermediate)
+        when 'e'
+          clear_main_menu(screen)
+          run_game(Game.new(16, 30, 99), :expert)
+        when 'c'
+          clear_main_menu(screen)
+          run_game(Game.new(@custom_rows, @custom_columns, @custom_bombs), :custom)
         when 'l'
+          clear_main_menu(screen)
           game = Game.load
           run_game(game) unless game.nil?
         when 's'
           clear_main_menu(screen)
           run_custom_menu
-        when 'a' then run_leaderboard
+        when 'a'
+          clear_main_menu(screen)
+          run_leaderboard
         when 'x' then exit
         end
 
@@ -301,7 +327,9 @@ end
 
 if __FILE__ == $PROGRAM_NAME
 
-  display = Display.new
+  user = ARGV.shift
+
+  display = Display.new(user)
 
   display.run_main_menu
 
