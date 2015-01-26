@@ -44,5 +44,39 @@ class Tile
 end
 
 def Board
+  DELTAS = [
+    [1,1],
+    [1,0],
+    [0,1],
+    [-1,0],
+    [0,-1],
+    [-1,-1],
+    [1,-1],
+    [-1,1]
+  ]
+
+  def self.randomize_bombs(rows, columns, bomb_count)
+    locations = [true] * bomb_count + [false] * (rows * columns - bomb_count)
+    locations.shuffle!
+  end
+
+  def initialize(rows, columns, bomb_count)
+    bomb_locations = self.class.randomize_bombs(rows, columns, bomb_count)
+    @tiles = Array.new(rows) { Array.new(columns)}
+
+    rows.times do |row|
+      columns.times do |column|
+        location = [row, column]
+        bomb = bomb_locations[row*rows + column]
+        @tiles[row][column] = Tile.new(bomb, self, location)
+      end
+    end
+  end
+
+  def neighbors(location)
+    row, column = *location
+  end
+
+
 
 end
