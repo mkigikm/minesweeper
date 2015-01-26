@@ -1,3 +1,4 @@
+# encoding: utf-8
 require 'dispel'
 require './minesweeper_board.rb'
 require 'yaml'
@@ -56,6 +57,28 @@ class Display
     "Le(a)derboard",
     "E(x)it"
   ]
+  CUSTOM_MENU = [
+    "Custom Board Settings",
+    "Rows",
+    " (q) ⬆  (a) ⬇",
+    "Columns",
+    " (w) ⬆  (s) ⬇",
+    "Bombs",
+    " (e) ⬆  (d) ⬇",
+    "(M)ain menu"
+  ]
+
+  MIN_ROWS = 3
+  MIN_COLUMNS = 8
+  MAX_ROWS = 99
+  MAX_COLUMNS = 99
+  MIN_BOMBS = 1
+
+  def initialize
+    @custom_rows = 10
+    @custom_columns = 10
+    @custom_bombs = 10
+  end
 
   def display_game(screen, game)
     if game.board.won? || game.board.loss?
@@ -102,19 +125,79 @@ class Display
   end
 
   def display_main_menu
-    MAIN_MENU.join("\n")
+    current_menu = MAIN_MENU.dup
+
+    current_menu[4] += " #{@custom_rows} x #{@custom_columns} Bombs: #{@custom_bombs}"
+    current_menu.join("\n")
   end
 
 
-  # "Welcome to Minesweeper!",
-  # "(B)eginner",
-  # "(I)ntermediate",
-  # "(E)xpert",
-  # "(C)ustom",
-  # "(L)oad",
-  # "Le(a)derboard",
-  # "E(x)it"
+  def increase_rows
+    @custom_rows += 1 unless @custom_rows == MAX_ROWS
+  end
 
+  def decrease_rows
+    @custom_rows -= 1 unless @custom_rows == MIN_ROWS
+    @custom_bombs = [@custom_bombs, max_custom_bombs].min
+  end
+
+  def increase_columns
+    @custom_columns += 1 unless @custom_columns == MAX_COLUMNS
+  end
+
+  def decrese_columns
+    @custom_columns -= 1 unless @custom_columns == MIN_COLUMNS
+    @custom_bombs = [@custom_bombs, max_custom_bombs].min
+  end
+
+  def increse_bombs
+    @custom_bombs += 1 unless @custom_bombs == max_custom_bombs
+  end
+
+  def decrease_bombs
+    @custom_bombs -= 1 unless @custom_bombs == MIN_BOMBS
+  end
+
+  def max_custom_bombs
+    @custom_rows * @custom_columns - 1
+  end
+
+# "Custom Board Settings",
+# "Rows",
+# " (q) ⬆  (a) ⬇",
+# "Columns",
+# " (w) ⬆  (s) ⬇",
+# "Bombs",
+# " (e) ⬆  (d) ⬇",
+# "(M)ain menu"
+  def display_custom_menu
+    current_menu = CUSTOM_MENU.dup
+
+    current_menu[1] += " #{@custom_rows}"
+    current_menu[3] += " #{@custom_columns}"
+    current_menu[5] += " #{@custom_bombs}"
+    current_menu.join("\n")
+  end
+
+  def run_custom_menu
+    Dispel::Screen.open do |screen|
+      screen.draw(display_custom_menu)
+
+      Dispel::Keyboard.output do |key|
+        case key
+        when 'q' then increase_rows
+        when 'a' then decrease_rows
+        when 'w' then increase_columns
+        when 's' then decrese_columns
+        when "e" then increse_bombs
+        when 'd' then decrease_bombs
+        when 'm' then break
+        end
+
+        screen.draw(display_custom_menu)
+      end
+    end
+  end
 
   def run_main_menu
     Dispel::Screen.open do |screen|
@@ -125,7 +208,7 @@ class Display
         when 'b' then run_game(Game.new(9, 9, 10))
         when 'i' then run_game(Game.new(16, 16, 40))
         when 'e' then run_game(Game.new(16, 30, 99))
-        when 'c' then break
+        when 'c' then run_custom_menu
         when 'l'
           game = Game.load
           run_game(game) unless game.nil?
