@@ -53,6 +53,7 @@ class Display
     "(I)ntermediate",
     "(E)xpert",
     "(C)ustom",
+    "(S)et custom",
     "(L)oad",
     "Le(a)derboard",
     "E(x)it"
@@ -208,10 +209,11 @@ class Display
         when 'b' then run_game(Game.new(9, 9, 10))
         when 'i' then run_game(Game.new(16, 16, 40))
         when 'e' then run_game(Game.new(16, 30, 99))
-        when 'c' then run_custom_menu
+        when 'c' then run_game(Game.new(@custom_rows, @custom_columns, @custom_bombs))
         when 'l'
           game = Game.load
           run_game(game) unless game.nil?
+        when 's' then run_custom_menu
         when 'a' then break
         when 'x' then exit
         end
