@@ -6,8 +6,12 @@ class Game
   attr_reader :position, :board
 
   def self.load(file_name = 'minesweeper.txt')
+    return nil unless File.file?(file_name)
+
     serialized_game = File.read(file_name)
-    YAML::load(serialized_game)
+    game = YAML::load(serialized_game)
+    return nil unless game.is_a?(Game)
+    game
   end
 
   def initialize(rows, columns, bombs)
@@ -42,6 +46,17 @@ class Game
 end
 
 class Display
+  MAIN_MENU = [
+    "Welcome to Minesweeper!",
+    "(B)eginner",
+    "(I)ntermediate",
+    "(E)xpert",
+    "(C)ustom",
+    "(L)oad",
+    "Le(a)derboard",
+    "E(x)it"
+  ]
+
   def display_game(screen, game)
     if game.board.won? || game.board.loss?
       game_board = game.board.display_solution
@@ -62,8 +77,7 @@ class Display
     screen.draw(game_board, [], game.position)
   end
 
-  def run
-    game = Game.new(9,9,5)
+  def run_game(game)
 
     Dispel::Screen.open do |screen|
       display_game(screen, game)
@@ -77,12 +91,57 @@ class Display
         when "q" then break
         when " " then game.board.reveal(game.position)
         when "f" then game.board.flag(game.position)
-        when "s" then game.save('minesweeper.txt')
+        when "s"
+          game.save('minesweeper.txt')
+          break
         end
 
         display_game(screen, game)
       end
     end
+  end
+
+  def display_main_menu
+    MAIN_MENU.join("\n")
+  end
+
+
+  # "Welcome to Minesweeper!",
+  # "(B)eginner",
+  # "(I)ntermediate",
+  # "(E)xpert",
+  # "(C)ustom",
+  # "(L)oad",
+  # "Le(a)derboard",
+  # "E(x)it"
+
+
+  def run_main_menu
+    Dispel::Screen.open do |screen|
+      screen.draw(display_main_menu)
+
+      Dispel::Keyboard.output do |key|
+        case key
+        when 'b' then run_game(Game.new(9, 9, 10))
+        when 'i' then run_game(Game.new(16, 16, 40))
+        when 'e' then run_game(Game.new(16, 30, 99))
+        when 'c' then break
+        when 'l'
+          game = Game.load
+          run_game(game) unless game.nil?
+        when 'a' then break
+        when 'x' then exit
+        end
+
+        screen.draw(display_main_menu)
+      end
+    end
+  end
+
+  def leaderboard
+  end
+
+  def custom_settings
   end
 
 end
@@ -92,6 +151,6 @@ if __FILE__ == $PROGRAM_NAME
 
   display = Display.new
 
-  display.run
+  display.run_main_menu
 
 end
