@@ -44,6 +44,29 @@ class Game
     end
   end
 
+  def start_timer
+    @start_time = Time.new
+  end
+
+  def end_timer
+    @end_time = Time.new
+  end
+
+  def reveal
+    start_timer if @start_time.nil?
+    @board.reveal(position)
+    end_timer if board.won? || board.loss?
+  end
+
+  def get_time
+    return nil if @end_time.nil?
+    @end_time - @start_time
+  end
+
+  def flag
+    @board.flag(postion)
+  end
+
 end
 
 class Display
@@ -96,7 +119,9 @@ class Display
       game_board << "\nYou dead :("
     end
 
-    game_board << "\n (f)lag (space)reveal (q)uit"
+    game_board << "\n (f)lag (space)reveal (q)uit (s)ave"
+
+    game_board << "\n #{game.get_time}" unless game.get_time.nil?
 
     screen.draw(game_board, [], game.position)
   end
@@ -113,8 +138,8 @@ class Display
         when :right then game.right
         when :down then game.down
         when "q" then break
-        when " " then game.board.reveal(game.position)
-        when "f" then game.board.flag(game.position)
+        when " " then game.reveal
+        when "f" then game.flag
         when "s"
           game.save('minesweeper.txt')
           break
@@ -131,7 +156,6 @@ class Display
     current_menu[4] += " #{@custom_rows} x #{@custom_columns} Bombs: #{@custom_bombs}"
     current_menu.join("\n")
   end
-
 
   def increase_rows
     @custom_rows += 1 unless @custom_rows == MAX_ROWS
@@ -200,6 +224,12 @@ class Display
     end
   end
 
+  def clear_main_menu(screen)
+    clear_string = display_main_menu
+    clear_string.gsub(/[^\n]/, ' ')
+    screen.draw(clear_string)
+  end
+
   def run_main_menu
     Dispel::Screen.open do |screen|
       screen.draw(display_main_menu)
@@ -213,7 +243,9 @@ class Display
         when 'l'
           game = Game.load
           run_game(game) unless game.nil?
-        when 's' then run_custom_menu
+        when 's'
+          clear_main_menu(screen)
+          run_custom_menu
         when 'a' then break
         when 'x' then exit
         end
