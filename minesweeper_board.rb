@@ -19,31 +19,43 @@ class Tile
     end.count
   end
 
-  def reveal(first=true)
+  def reveal_first
     raise "can't reveal a flagged tile" if @flagged
 
-    return :safe if revealed
-    @revealed = true
     return :exploded if @bomb
+    return :safe if revealed
+
+    @revealed = true
+    if neighbors.none?(&:bomb)
+     neighbors.each do |neighbor|
+       neighbor.reveal
+     end
+    end
+
+    :safe
+  end
+
+  def reveal
+    return if revealed
+    @revealed = true
     return :safe if number > 0
 
-    not_safe = neighbors.any? do |neighbor|
-      neighbor.reveal(false) == :exploded
+    neighbors.each do |neighbor|
+      neighbor.reveal
     end
 
-    if not_safe
-      :exploded
-    else
-      :safe
-    end
   end
 
   def neighbors
     @board.neighbors(@location)
   end
+
+  def inspect
+    @location.inspect
+  end
 end
 
-def Board
+class Board
   DELTAS = [
     [1,1],
     [1,0],
@@ -54,7 +66,9 @@ def Board
     [1,-1],
     [-1,1]
   ]
-  UNEXPLORED = "#"
+  UNEXPLORED = "_"
+  BOMB = "*"
+  FLAG = "F"
 
   def self.randomize_bombs(rows, columns, bomb_count)
     locations = [true] * bomb_count + [false] * (rows * columns - bomb_count)
@@ -71,6 +85,7 @@ def Board
     @row_count = rows
     @column_count = columns
     @bomb_count = bomb_count
+    @alive = true
 
     rows.times do |row|
       columns.times do |column|
@@ -107,12 +122,12 @@ def Board
   def reveal(location)
     row, column = *location
 
-    @tiles[row][column].reveal
+    @alive = false if @tiles[row][column].reveal_first == :exploded
   end
 
   def won?
     revelead_tile_count = @tiles.flatten.select { |tile| tile.revealed}.count
-    revelead_tile_count == @row_count * @tile_count - @bomb_count
+    revelead_tile_count == @row_count * @column_count - @bomb_count
   end
 
   def display
@@ -122,6 +137,10 @@ def Board
       @column_count.times do |column|
         if @tiles[row][column].revealed
           revealed_display << @tiles[row][column].number.to_s
+          revealed_display[-1] = "." if revealed_display[-1] == "0"
+        elsif @tiles[row][column].flagged
+          revealed_display << FLAG
+
         else
           revealed_display << UNEXPLORED
         end
@@ -133,5 +152,19 @@ def Board
   end
 
   def display_solution
+    revealed_display = ""
+
+    @row_count.times do |row|
+      @column_count.times do |column|
+        if @tiles[row][column].bomb
+          revealed_display << BOMB
+        else
+          revealed_display << UNEXPLORED
+        end
+      end
+      revealed_display << "\n"
+    end
+
+    revealed_display
   end
 end
