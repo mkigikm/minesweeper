@@ -63,6 +63,9 @@ def Board
   def initialize(rows, columns, bomb_count)
     bomb_locations = self.class.randomize_bombs(rows, columns, bomb_count)
     @tiles = Array.new(rows) { Array.new(columns)}
+    @row_count = rows
+    @column_count = columns
+    @bomb_count = bomb_count
 
     rows.times do |row|
       columns.times do |column|
@@ -75,8 +78,35 @@ def Board
 
   def neighbors(location)
     row, column = *location
+    neighbors = []
+
+    DELTAS.each do |delta|
+      delta_row, delta_column = *delta
+      new_row, new_column = row + delta_row, column + delta_column
+
+      if new_row.between?(0, @row_count - 1) &&
+          new_column.between?(0, @column_count - 1)
+        neighbors << @tiles[new_row][new_column]
+      end
+    end
+
+    neighbors
   end
 
+  def flag(location)
+    row, column = *location
 
+    @tiles[row][column].flag
+  end
 
+  def reveal(location)
+    row, column = *location
+
+    @tiles[row][column].reveal
+  end
+
+  def won?
+    revelead_tile_count = @tiles.flatten.select { |tile| tile.revealed}.count
+    revelead_tile_count == @row_count * @tile_count - @bomb_count
+  end
 end
