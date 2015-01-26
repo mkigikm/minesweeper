@@ -7,7 +7,7 @@ class Game
   def initialize(rows, columns, bombs)
     @board = Board.new(rows, columns, bombs)
     @row_count = rows
-    @coulmn_count = columns
+    @column_count = columns
     @position = [0, 0]
   end
 
@@ -29,11 +29,31 @@ class Game
 end
 
 class Display
+  def display_game(screen, game)
+    if game.board.won? || game.board.loss?
+      game_board = game.board.display_solution
+    else
+      game_board = game.board.display
+    end
+
+    if game.board.won?
+      game_board << "\nWin!"
+    elsif game.board.alive
+      game_board << "\nAlive"
+    else
+      game_board << "\nYou dead :("
+    end
+
+    game_board << "\n (f)lag (space)reveal (q)uit"
+
+    screen.draw(game_board, [], game.position)
+  end
+
   def run
-    game = Game.new(9,9,10)
+    game = Game.new(9,9,5)
 
     Dispel::Screen.open do |screen|
-      screen.draw(game.board.display, [], game.position)
+      display_game(screen, game)
 
       Dispel::Keyboard.output do |key|
         case key
@@ -42,11 +62,11 @@ class Display
         when :right then game.right
         when :down then game.down
         when "q" then break
-        when "r" then game.board.reveal(game.position)
+        when " " then game.board.reveal(game.position)
         when "f" then game.board.flag(game.position)
         end
 
-      screen.draw(game.board.display, [], game.position)
+        display_game(screen, game)
       end
     end
   end

@@ -20,10 +20,10 @@ class Tile
   end
 
   def reveal_first
-    raise "can't reveal a flagged tile" if @flagged
+    # raise "can't reveal a flagged tile" if @flagged
 
+    return :safe if revealed || flagged
     return :exploded if @bomb
-    return :safe if revealed
 
     @revealed = true
     if neighbors.none?(&:bomb)
@@ -52,6 +52,14 @@ class Tile
   def inspect
     @location.inspect
   end
+
+  def num_as_string
+    if number == 0
+      "."
+    else
+      number.to_s
+    end
+  end
 end
 
 class Board
@@ -67,7 +75,9 @@ class Board
   ]
   UNEXPLORED = "_"
   BOMB = "*"
-  FLAG = "F"
+  FLAG = "^"
+
+  attr_reader :alive
 
   def self.randomize_bombs(rows, columns, bomb_count)
     locations = [true] * bomb_count + [false] * (rows * columns - bomb_count)
@@ -129,14 +139,17 @@ class Board
     revelead_tile_count == @row_count * @column_count - @bomb_count
   end
 
+  def loss?
+    !alive
+  end
+
   def display
     revealed_display = ""
 
     @row_count.times do |row|
       @column_count.times do |column|
         if @tiles[row][column].revealed
-          revealed_display << @tiles[row][column].number.to_s
-          revealed_display[-1] = "." if revealed_display[-1] == "0"
+          revealed_display << @tiles[row][column].num_as_string
         elsif @tiles[row][column].flagged
           revealed_display << FLAG
 
@@ -158,7 +171,7 @@ class Board
         if @tiles[row][column].bomb
           revealed_display << BOMB
         else
-          revealed_display << UNEXPLORED
+          revealed_display << @tiles[row][column].num_as_string
         end
       end
       revealed_display << "\n"
