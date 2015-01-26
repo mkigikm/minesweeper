@@ -130,7 +130,7 @@ class Display
       game_board << "\nYou dead :("
     end
 
-    game_board << "\n (f)lag (space)reveal (q)uit (s)ave"
+    game_board << "\n (f)lag (space)reveal (M)ain menu (s)ave"
 
     game_board << "\n #{game.get_time}" unless game.get_time.nil?
 
@@ -148,7 +148,7 @@ class Display
         when :left then game.left
         when :right then game.right
         when :down then game.down
-        when "q" then break
+        when "m" then break
         when " "
           if game.reveal && game_type != :custom
             case game_type
